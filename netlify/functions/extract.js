@@ -141,13 +141,19 @@ ${text.replace(/<\/?text>/gi, "")}
     );
 
     if (!response.ok) {
-      return reply(response.status === 429 ? 429 : 502, {
-        error:
-          response.status === 429
-            ? "AI quota reached. Please try again later."
-            : `AI provider error (${response.status}).`
-      });
-    }
+  const googleError = await response.json().catch(() => ({}));
+
+  console.error("Gemini API error:", JSON.stringify(googleError));
+
+  return reply(response.status === 429 ? 429 : 502, {
+    error:
+      response.status === 429
+        ? "AI quota reached. Please try again later."
+        : `AI provider error (${response.status}): ${
+            googleError.error?.message || "Unknown error"
+          }`
+  });
+}
 
     const payload = await response.json();
 
